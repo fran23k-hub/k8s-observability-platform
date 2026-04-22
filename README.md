@@ -2,7 +2,7 @@
 
 A production-style Kubernetes platform demonstrating observability, security, and intelligent autoscaling using real-world tools.
 
-## 📊 Example Dashboard
+## 📊 Observability Dashboard (Under Load)
 
 ![Grafana Dashboard](docs/images/dashboard.png)
 

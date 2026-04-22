@@ -1,0 +1,34 @@
+controller:
+  kind: DaemonSet
+
+  hostNetwork: false
+
+  admissionWebhooks:
+    enabled: false
+
+  config:
+    enable-access-log: true
+    enable-vts-status: true
+    log-format-escape-json: true
+
+  # 🔥 THIS IS THE FIX
+  service:
+    type: NodePort
+
+    ports:
+      http: 80
+      https: 443
+
+    # optional but keeps ports stable
+    nodePorts:
+      http: 32265
+      https: 32152
+
+  metrics:
+    enabled: true
+    service:
+      enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: kube-prometheus-stack

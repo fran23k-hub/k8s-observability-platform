@@ -1,0 +1,78 @@
+{{- if .Values.keda.enabled }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Values.name }}-scaling
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    name: {{ .Values.name }}
+  minReplicaCount: {{ .Values.keda.minReplicas }}
+  maxReplicaCount: {{ .Values.keda.maxReplicas }}
+  pollingInterval: 15
+  cooldownPeriod: 90
+  advanced:
+    horizontalPodAutoscalerConfig:
+      behavior:
+        scaleUp:
+          stabilizationWindowSeconds: 0
+          policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 15
+          - type: Pods
+            value: 2
+            periodSeconds: 15
+          selectPolicy: Max
+        scaleDown:
+          stabilizationWindowSeconds: 90
+          policies:
+          - type: Percent
+            value: 50
+            periodSeconds: 30
+          - type: Pods
+            value: 1
+            periodSeconds: 30
+          selectPolicy: Min
+  triggers:
+    # Request-rate scaling
+    - type: prometheus
+      metadata:
+        serverAddress: "{{ .Values.keda.prometheusServer }}"
+        metricName: request_rate
+        threshold: "{{ .Values.keda.rpsThreshold }}"
+        activationThreshold: "{{ .Values.keda.rpsActivationThreshold }}"
+        query: |
+          sum(rate(nginx_ingress_controller_requests{
+            ingress="{{ .Values.ingress.name }}"
+          }[2m]))
+    # SLO-based scaling: error rate > 0.5% = availability < 99.5%
+    # [1m] window for fast demo feedback
+    # > bool 1 guard prevents scaling from a single stray 500 with no traffic
+    - type: prometheus
+      metadata:
+        serverAddress: "{{ .Values.keda.prometheusServer }}"
+        metricName: error_rate
+        threshold: "{{ .Values.keda.errorThreshold }}"
+        activationThreshold: "{{ .Values.keda.errorActivationThreshold }}"
+        query: |
+          (
+            sum(rate(nginx_ingress_controller_requests{
+              ingress="{{ .Values.ingress.name }}",
+              status=~"5.."
+            }[1m]))
+            /
+            clamp_min(
+              sum(rate(nginx_ingress_controller_requests{
+                ingress="{{ .Values.ingress.name }}"
+              }[1m])),
+              1
+            )
+          )
+          *
+          (
+            sum(rate(nginx_ingress_controller_requests{
+              ingress="{{ .Values.ingress.name }}"
+            }[1m])) > bool 1
+          )
+{{- end }}

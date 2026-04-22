@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Place Order | Francis Kelly{% endblock %}
+
+{% block content %}
+
+<section class="py-5">
+  <div class="container">
+    <div class="card p-4 shadow card-hover project-card mx-auto" style="max-width: 550px;">
+
+      <h5 class="project-title text-center mb-4">
+        Place Your Order
+      </h5>
+
+      <!-- Email -->
+      <input id="email" type="email" class="form-control mb-3" placeholder="Your Email" />
+
+      <!-- Product Dropdown -->
+      <select id="productSelect" class="form-select mb-3" onchange="updateProductInfo()">
+        <option value="">Select Product</option>
+      </select>
+
+      <!-- Product Info -->
+      <div class="mb-3">
+        <div id="productInfo" class="mb-3 fw-semibold text-info"></div>
+      </div>
+
+      <!-- Quantity -->
+      <input id="quantity" type="number" class="form-control mb-3" placeholder="Quantity" min="1" />
+
+      <button class="btn btn-primary w-100" onclick="submitOrder()">
+        Submit Order
+      </button>
+
+      <div class="message mt-3 text-center" id="msg"></div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+let products = [];
+
+async function loadProducts() {
+    try {
+        const res = await fetch('/products');
+        products = await res.json();
+
+        const select = document.getElementById("productSelect");
+
+        products.forEach(product => {
+            const option = document.createElement("option");
+            option.value = product.id;
+            option.text = product.name;
+            select.appendChild(option);
+        });
+
+    } catch (err) {
+        console.error("Error loading products:", err);
+    }
+}
+
+function updateProductInfo() {
+    const productId = document.getElementById("productSelect").value;
+    const info = document.getElementById("productInfo");
+
+    const product = products.find(p => p.id == productId);
+
+    if (product) {
+        info.innerText = `Price: €${product.price} | Stock Available: ${product.stock}`;
+    } else {
+        info.innerText = "";
+    }
+}
+
+async function submitOrder() {
+    const email = document.getElementById("email").value;
+    const product_id = document.getElementById("productSelect").value;
+    const quantity = document.getElementById("quantity").value;
+    const msg = document.getElementById("msg");
+
+    if (!email || !product_id || !quantity) {
+        msg.innerText = "Please complete all fields.";
+        msg.className = "text-danger";
+        return;
+    }
+
+    try {
+        const res = await fetch('/order', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                email,
+                product_id,
+                quantity
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            msg.innerText = data.error || "Order failed.";
+            msg.className = "text-danger";
+            return;
+        }
+
+        msg.innerText = `Order #${data.order_id} processed by ${data.processed_by}`;
+        msg.className = "text-success";
+
+        document.getElementById("quantity").value = "";
+
+        // Refresh product list to update stock display
+        document.getElementById("productSelect").innerHTML = '<option value="">Select Product</option>';
+        await loadProducts();
+
+    } catch (err) {
+        msg.innerText = "Error submitting order.";
+        msg.className = "text-danger";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadProducts);
+</script>
+
+{% endblock %}

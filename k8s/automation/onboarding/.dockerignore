@@ -1,0 +1,9 @@
+*.tar
+.git
+.gitignore
+Dockerfile
+__pycache__
+*.pyc
+*.log
+.env
+.env.*

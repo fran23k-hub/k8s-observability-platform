@@ -1,0 +1,25 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: slo-alerts
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: slo.rules
+      rules:
+        - alert: LowAvailability
+          expr: |
+            1 - (
+              sum(rate(http_requests_total{status=~"5.."}[5m]))
+              /
+              sum(rate(http_requests_total[5m]))
+            ) < 0.995
+          for: 2m
+          labels:
+            severity: critical
+            type: slo
+          annotations:
+            summary: "SLO breach: availability < 99.5%"
+            description: "Service availability has dropped below 99.5% for the last 2 minutes"

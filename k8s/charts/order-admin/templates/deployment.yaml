@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-admin
+  template:
+    metadata:
+      labels:
+        app: order-admin
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "order-api"
+        vault.hashicorp.com/agent-inject-secret-db-creds: "database/creds/orders-role"
+        vault.hashicorp.com/agent-inject-template-db-creds: |
+          {{`{{- with secret "database/creds/orders-role" -}}`}}
+          DB_USER={{`{{ .Data.username }}`}}
+          DB_PASSWORD={{`{{ .Data.password }}`}}
+          {{`{{- end }}`}}
+    spec:
+      serviceAccountName: order-api
+
+      containers:
+        - name: order-admin
+          image: order-admin:latest
+          imagePullPolicy: IfNotPresent
+
+          env:
+            - name: DB_HOST
+              value: postgres.default.svc.cluster.local
+            - name: DB_NAME
+              value: ordersdb
+
+          ports:
+            - containerPort: 5000
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "300m"
+              memory: "256Mi"
+
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            seccompProfile:
+              type: RuntimeDefault
+            capabilities:
+              drop:
+                - ALL
+
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+
+      volumes:
+        - name: tmp
+          emptyDir: {}

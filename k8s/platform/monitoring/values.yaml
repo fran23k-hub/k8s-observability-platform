@@ -1,0 +1,50 @@
+defaultRules:
+  rules:
+    kubeControllerManager: false
+    kubeScheduler: false
+    kubeProxy: false
+
+prometheus:
+  prometheusSpec:
+
+    additionalScrapeConfigs:
+      - job_name: 'crowdsec'
+        static_configs:
+          - targets:
+              - '51.38.239.226:6060'
+
+      - job_name: 'otel-collector'
+        metrics_path: /metrics
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - otel
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: otel-collector-metrics
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: metrics
+
+
+alertmanager:
+  alertmanagerSpec:
+    useExistingSecret: false
+    config:
+      global:
+        resolve_timeout: 5m
+
+      route:
+        receiver: telegram-receiver
+
+      receivers:
+        - name: telegram-receiver
+          telegram_configs:
+            - bot_token: "8279456323:AAG1RhPJFyim3IQYaQ7Xsi3Aaox8zpQCMaE"
+              chat_id: 6741561779
+              parse_mode: HTML
+              send_resolved: true
+
+        - name: "null"

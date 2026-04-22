@@ -1,0 +1,548 @@
+{% extends "base.html" %}
+
+{% block title %}Custom PC Builder · Francis Kelly{% endblock %}
+
+{% block head %}
+<style>
+  /* ── Page header ── */
+  .builder-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .builder-header .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 0.5rem;
+  }
+  .builder-header h1 {
+    font-family: var(--font-display);
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+    margin-bottom: 0.5rem;
+  }
+  .builder-header h1 span {
+    background: linear-gradient(90deg, var(--gold), var(--gold-light));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .builder-header p {
+    color: var(--text-muted);
+    font-size: 0.92rem;
+  }
+
+  /* ── Builder card ── */
+  .builder-card {
+    background: var(--obsidian-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    max-width: 680px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+  }
+  /* Top gold accent line */
+  .builder-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--gold-light), transparent);
+  }
+
+  /* ── Email input ── */
+  .email-wrap {
+    position: relative;
+    margin-bottom: 2rem;
+  }
+  .email-wrap i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gold-dim);
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .email-wrap input {
+    width: 100%;
+    background: var(--obsidian-4);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.92rem;
+    padding: 12px 14px 12px 38px;
+    transition: border-color var(--transition), box-shadow var(--transition);
+  }
+  .email-wrap input::placeholder { color: var(--text-muted); }
+  .email-wrap input:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.08);
+  }
+
+  /* ── Section divider ── */
+  .components-label {
+    font-size: 0.7rem;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .components-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border-subtle);
+  }
+
+  /* ── Component rows ── */
+  .component-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background var(--transition);
+  }
+  .component-row:last-of-type { border-bottom: none; }
+
+  .component-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-sm);
+    background: rgba(201,168,76,0.07);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background var(--transition), border-color var(--transition);
+  }
+  .component-icon i {
+    color: var(--gold-dim);
+    font-size: 0.8rem;
+    transition: color var(--transition);
+  }
+  .component-row:focus-within .component-icon {
+    background: rgba(201,168,76,0.14);
+    border-color: var(--gold);
+  }
+  .component-row:focus-within .component-icon i { color: var(--gold); }
+
+  .component-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  .component-select {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%; 
+    background: var(--obsidian-4) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--text-primary) !important;
+    font-family: var(--font-body) !important;
+    font-size: 0.88rem !important;
+    padding: 8px 12px !important;
+    cursor: pointer;
+    transition: border-color var(--transition) !important;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a6f2e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    padding-right: 30px !important;
+  }
+  .component-select:focus {
+    outline: none !important;
+    border-color: var(--gold) !important;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.08) !important;
+  }
+  .component-select option {
+    background: var(--obsidian-3);
+    color: var(--text-primary);
+  }
+
+  .component-price {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--gold);
+    width: 54px;
+    text-align: right;
+    flex-shrink: 0;
+    font-family: var(--font-display);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .component-price.visible { opacity: 1; }
+
+  /* ── Price summary ── */
+  .price-summary {
+    margin-top: 1.8rem;
+    background: var(--obsidian-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .price-summary .label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--text-muted);
+  }
+  .price-summary .total {
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.02em;
+  }
+  .price-summary .total small {
+    font-size: 0.9rem;
+    color: var(--gold-dim);
+    margin-right: 2px;
+  }
+
+  /* ── Submit button ── */
+  .submit-wrap {
+    margin-top: 1.5rem;
+  }
+  #submitBtn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold), var(--gold-light));
+    background-size: 200% 200%;
+    background-position: left center;
+    color: var(--obsidian) !important;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 14px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background-position 0.4s ease, box-shadow 0.28s ease, transform 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  #submitBtn:hover:not(:disabled) {
+    background-position: right center;
+    box-shadow: 0 0 18px rgba(201,168,76,0.4), 0 4px 20px rgba(201,168,76,0.2);
+    transform: translateY(-1px);
+  }
+  #submitBtn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Spinner inside button */
+  .btn-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-top-color: var(--obsidian);
+    border-radius: 50%;
+    animation: spin 0.65s linear infinite;
+    display: none;
+  }
+  #submitBtn.loading .btn-spinner { display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Message ── */
+  #msg {
+    margin-top: 1rem;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-weight: 500;
+    text-align: center;
+    display: none;
+  }
+  #msg.success {
+    display: block;
+    background: rgba(201,168,76,0.1);
+    border: 1px solid rgba(201,168,76,0.3);
+    color: var(--gold-light);
+  }
+  #msg.error {
+    display: block;
+    background: rgba(220,38,38,0.08);
+    border: 1px solid rgba(220,38,38,0.3);
+    color: #fca5a5;
+  }
+
+  /* ── Fade-in animation ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .builder-header { animation: fadeUp 0.5s ease both; }
+  .builder-card   { animation: fadeUp 0.5s ease 0.1s both; }
+
+@media (max-width: 600px) {
+
+  .component-row {
+    flex-wrap: wrap;
+  }
+
+  .component-label {
+    width: auto;
+  }
+
+  .component-select {
+    width: 100%;
+    margin-top: 6px;
+  }
+
+  .component-price {
+    width: 100%;
+    text-align: right;
+    margin-top: 4px;
+  }
+
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="py-4">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="builder-header">
+      <p class="eyebrow"><i class="fa-solid fa-microchip" style="margin-right:6px"></i>Kubernetes Demo · Order API</p>
+      <h1>Custom PC <span>Builder</span></h1>
+      <p>Select your components and submit — your build goes straight to PostgreSQL.</p>
+    </div>
+
+    <!-- Card -->
+    <div class="builder-card">
+
+      <!-- Email -->
+      <div class="email-wrap">
+        <i class="fa-solid fa-envelope"></i>
+        <input id="email" type="email" placeholder="Your email address" autocomplete="email" />
+      </div>
+
+      <!-- Components -->
+      <div class="components-label">Components</div>
+
+      <div class="component-row">
+        <div class="component-icon"><i class="fa-solid fa-bolt"></i></div>
+        <span class="component-label">CPU</span>
+        <select id="cpu" class="component-select"></select>
+        <span class="component-price" id="price-cpu">€0</span>
+      </div>
+
+      <div class="component-row">
+        <div class="component-icon"><i class="fa-solid fa-display"></i></div>
+        <span class="component-label">GPU</span>
+        <select id="gpu" class="component-select"></select>
+        <span class="component-price" id="price-gpu">€0</span>
+      </div>
+
+      <div class="component-row">
+        <div class="component-icon"><i class="fa-solid fa-memory"></i></div>
+        <span class="component-label">RAM</span>
+        <select id="ram" class="component-select"></select>
+        <span class="component-price" id="price-ram">€0</span>
+      </div>
+
+      <div class="component-row">
+        <div class="component-icon"><i class="fa-solid fa-hard-drive"></i></div>
+        <span class="component-label">Storage</span>
+        <select id="storage" class="component-select"></select>
+        <span class="component-price" id="price-storage">€0</span>
+      </div>
+
+      <div class="component-row">
+        <div class="component-icon"><i class="fa-solid fa-plug"></i></div>
+        <span class="component-label">PSU</span>
+        <select id="psu" class="component-select"></select>
+        <span class="component-price" id="price-psu">€0</span>
+      </div>
+
+      <div class="component-row">
+        <div class="component-icon"><i class="fa-solid fa-box"></i></div>
+        <span class="component-label">Case</span>
+        <select id="case" class="component-select"></select>
+        <span class="component-price" id="price-case">€0</span>
+      </div>
+
+      <!-- Price summary -->
+      <div class="price-summary">
+        <span class="label">Build Total</span>
+        <span class="total" id="totalPrice"><small>€</small>0</span>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-wrap">
+        <button id="submitBtn" onclick="submitBuild()">
+          <div class="btn-spinner"></div>
+          <i class="fa-solid fa-cart-shopping" id="btnIcon"></i>
+          <span id="btnText">Place Build Order</span>
+        </button>
+      </div>
+
+      <!-- Message -->
+      <div id="msg"></div>
+
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let partsData = {};
+
+async function loadParts() {
+  try {
+    const res = await fetch('/pc-parts');
+    if (!res.ok) return;
+    partsData = await res.json();
+
+    Object.keys(partsData).forEach(category => {
+      const select = document.getElementById(category);
+      if (!select) return;
+
+      select.innerHTML = '<option value="">— Select —</option>';
+      partsData[category].forEach(part => {
+        const opt = document.createElement("option");
+        opt.value = part.id;
+        opt.dataset.price = part.price;
+        opt.textContent = `${part.name} — €${part.price}`;
+        select.appendChild(opt);
+      });
+    });
+  } catch (err) {
+    console.error("loadParts error:", err);
+  }
+}
+
+function updateTotal() {
+  let total = 0;
+  const categories = ['cpu','gpu','ram','storage','psu','case'];
+
+  categories.forEach(cat => {
+    const select = document.getElementById(cat);
+    const priceEl = document.getElementById(`price-${cat}`);
+    const selected = select?.options[select.selectedIndex];
+    const price = selected?.dataset.price ? parseFloat(selected.dataset.price) : 0;
+
+    if (priceEl) {
+      if (price > 0) {
+        priceEl.textContent = `€${price}`;
+        priceEl.classList.add('visible');
+      } else {
+        priceEl.textContent = '€0';
+        priceEl.classList.remove('visible');
+      }
+    }
+
+    total += price;
+  });
+
+  document.getElementById("totalPrice").innerHTML = `<small>€</small>${total}`;
+}
+
+async function submitBuild() {
+  const btn    = document.getElementById("submitBtn");
+  const msg    = document.getElementById("msg");
+  const email  = document.getElementById("email").value.trim();
+
+  // Reset message
+  msg.className = "";
+  msg.textContent = "";
+
+  if (!email) {
+    msg.textContent = "Please enter your email address.";
+    msg.className = "error";
+    document.getElementById("email").focus();
+    return;
+  }
+
+  const build = {
+    cpu:     parseInt(document.getElementById("cpu").value),
+    gpu:     parseInt(document.getElementById("gpu").value),
+    ram:     parseInt(document.getElementById("ram").value),
+    storage: parseInt(document.getElementById("storage").value),
+    psu:     parseInt(document.getElementById("psu").value),
+    case:    parseInt(document.getElementById("case").value)
+  };
+
+  if (Object.values(build).some(v => isNaN(v))) {
+    msg.textContent = "Please select all components before submitting.";
+    msg.className = "error";
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btn.classList.add("loading");
+  document.getElementById("btnText").textContent = "Processing…";
+  document.getElementById("btnIcon").style.display = "none";
+
+  try {
+    const res  = await fetch('/build', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, build })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      msg.textContent = data.error || "Build failed. Please try again.";
+      msg.className = "error";
+      return;
+    }
+
+    msg.innerHTML = `<i class="fa-solid fa-circle-check" style="margin-right:6px"></i>Order #${data.order_id} placed! Total: €${data.total_price}`;
+    msg.className = "success";
+
+    // Reset form
+    document.getElementById("email").value = "";
+    document.querySelectorAll(".component-select").forEach(s => s.selectedIndex = 0);
+    updateTotal();
+
+  } catch (err) {
+    msg.textContent = "Server error — please try again.";
+    msg.className = "error";
+  } finally {
+    btn.disabled = false;
+    btn.classList.remove("loading");
+    document.getElementById("btnText").textContent = "Place Build Order";
+    document.getElementById("btnIcon").style.display = "";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadParts();
+  document.querySelectorAll('.component-select').forEach(select => {
+    select.addEventListener("change", updateTotal);
+  });
+});
+</script>
+{% endblock %}

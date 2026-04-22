@@ -1,0 +1,5 @@
+controller:
+  admissionWebhooks:
+    enabled: false
+  hostNetwork: false
+  kind: DaemonSet

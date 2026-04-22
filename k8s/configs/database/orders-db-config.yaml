@@ -1,0 +1,30 @@
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: orders-db-config
+  namespace: default
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: vault-backend
+    kind: SecretStore
+  target:
+    name: orders-db-secret
+    creationPolicy: Owner
+  data:
+  - secretKey: DB_HOST
+    remoteRef:
+      key: secret/orders-db
+      property: DB_HOST
+  - secretKey: DB_NAME
+    remoteRef:
+      key: secret/orders-db
+      property: DB_NAME
+  - secretKey: DB_USER
+    remoteRef:
+      key: secret/orders-db
+      property: DB_USER
+  - secretKey: DB_PASSWORD
+    remoteRef:
+      key: secret/orders-db
+      property: DB_PASSWORD

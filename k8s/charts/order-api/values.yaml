@@ -1,0 +1,96 @@
+# ------------------------
+# App Identity
+# ------------------------
+name: order-api
+
+replicaCount: 2
+
+# ------------------------
+# Image
+# ------------------------
+image:
+  repository: order-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# ------------------------
+# Service
+# ------------------------
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5000
+
+# ------------------------
+# Ingress
+# ------------------------
+ingress:
+  enabled: true
+  className: nginx
+  name: order-api-ingress
+  host: orders.franciskelly.ie
+
+  rateLimit:
+    enabled: true
+    rps: 2
+    burst: 2
+    connections: 20
+    useForwardedHeaders: true
+
+# ------------------------
+# Resources
+# ------------------------
+resources:
+  requests:
+    cpu: "250m"
+    memory: "192Mi"
+  limits:
+    cpu: "500m"
+    memory: "384Mi"
+
+# ------------------------
+# Environment Variables
+# ------------------------
+env:
+  DB_HOST: postgres.default.svc.cluster.local
+  DB_NAME: ordersdb
+  USE_CACHE: "true"
+  SIMULATE_BOTTLENECK: "false"
+
+# ------------------------
+# Security Context
+# ------------------------
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+
+# ------------------------
+# KEDA Scaling
+# ------------------------
+keda:
+  enabled: true
+
+  minReplicas: 1
+  maxReplicas: 5
+
+  prometheusServer: http://prometheus-operated.monitoring.svc:9090
+
+  # Request-rate scaling
+  # Start reacting once traffic is real, then scale harder above threshold
+  rpsActivationThreshold: "5"
+  rpsThreshold: "60"
+
+  # SLO scaling
+  # 0.005 = 0.5% error rate = 99.5% availability
+  errorActivationThreshold: "0.001"
+  errorThreshold: "0.005"
+
+# ------------------------
+# Misc
+# ------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,16 @@
+# Secrets
+*.env
+*.key
+*.pem
+*.crt
+
+# Backups
+backups/
+
+# Python junk
+__pycache__/
+*.pyc
+
+# OS junk
+.DS_Store
+Thumbs.db

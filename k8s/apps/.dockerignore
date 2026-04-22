@@ -1,0 +1,12 @@
+*.tar
+.git
+.gitignore
+__pycache__
+*.pyc
+*.log
+.env
+.env.*
+!shared/
+!shared/**
+!order-api/
+!order-api/**

@@ -1,0 +1,73 @@
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: otel-collector
+  namespace: otel
+
+spec:
+  mode: daemonset
+  image: otel/opentelemetry-collector-contrib:latest
+
+  config:
+    receivers:
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: kubernetes-pods
+              scrape_interval: 15s
+
+              kubernetes_sd_configs:
+                - role: pod
+
+              relabel_configs:
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+                  action: keep
+                  regex: "true"
+
+                - source_labels:
+                    [__meta_kubernetes_pod_annotation_prometheus_io_path]
+                  action: replace
+                  target_label: __metrics_path__
+                  regex: (.+)
+
+                - source_labels:
+                    [
+                      __meta_kubernetes_pod_ip,
+                      __meta_kubernetes_pod_annotation_prometheus_io_port,
+                    ]
+                  action: replace
+                  target_label: __address__
+                  regex: (.+);(.+)
+                  replacement: $1:$2
+
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: pod
+
+                - source_labels: [__meta_kubernetes_namespace]
+                  target_label: namespace
+
+    processors:
+      transform:
+        metric_statements:
+          - context: datapoint
+            statements:
+              - set(attributes["pod"], attributes["exported_pod"])
+              - delete_key(attributes, "exported_pod")
+
+              - set(attributes["namespace"], attributes["exported_namespace"])
+              - delete_key(attributes, "exported_namespace")
+
+              - set(attributes["endpoint"], attributes["exported_endpoint"])
+              - delete_key(attributes, "exported_endpoint")
+
+    exporters:
+      prometheus:
+        endpoint: "0.0.0.0:9464"
+
+    service:
+      pipelines:
+        metrics:
+          receivers: [prometheus]
+          processors: [transform]
+          exporters: [prometheus]

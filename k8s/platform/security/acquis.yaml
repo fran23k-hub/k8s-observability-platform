@@ -1,0 +1,4 @@
+filenames:
+  - /var/log/containers/*ingress-nginx*.log
+labels:
+  type: docker

@@ -1,0 +1,36 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: order-api-scaling
+  namespace: default
+
+spec:
+  scaleTargetRef:
+    name: order-api
+
+  minReplicaCount: 1
+  maxReplicaCount: 5
+
+  triggers:
+    # 🔹 CPU scaling (baseline safety net)
+    - type: cpu
+      metricType: Utilization
+      metadata:
+        value: "80"
+
+    # 🔹 SLO scaling (ERROR RATE based - CORRECT LOGIC)
+    - type: prometheus
+      metadata:
+        serverAddress: http://prometheus-operated.monitoring.svc:9090
+        metricName: error_rate
+        threshold: "0.005" # 0.5% error rate triggers scaling
+        query: |
+          (
+            sum(rate(http_requests_total[1m])) > 5
+          )
+          *
+          (
+            sum(rate(http_requests_total{status=~"5.."}[1m]))
+            /
+            sum(rate(http_requests_total[1m]))
+          )

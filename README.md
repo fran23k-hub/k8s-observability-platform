@@ -5,6 +5,7 @@ A production-style Kubernetes platform demonstrating observability, security, an
 ## 📊 Observability Dashboard (Under Load)
 
 ![Grafana Dashboard](docs/images/dashboard.png)
+This dashboard shows real-time system behaviour under load, including request throughput (~889 req/s), latency (P99), resource utilisation, and autoscaling activity.
 
 ## 🚀 Core Capabilities
 

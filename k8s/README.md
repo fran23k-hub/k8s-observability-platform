@@ -44,3 +44,11 @@ See poster / results section for:
 - SLO availability tracking
 - Autoscaling behaviour under load
 - Rate limiting in action
+
+## 🎯 Key Highlights
+
+- SLO-driven autoscaling based on real application health (not just CPU)
+- End-to-end observability pipeline (metrics, logs, dashboards)
+- Ingress-level traffic protection (rate limiting & IP throttling)
+- Secure secret management using Vault with dynamic credentials
+- Real-world validation through load testing and failure simulation

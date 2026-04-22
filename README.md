@@ -2,7 +2,11 @@
 
 A production-style Kubernetes platform demonstrating observability, security, and intelligent autoscaling using real-world tools.
 
-## 🚀 Features
+## 📊 Example Dashboard
+
+![Grafana Dashboard](docs/images/dashboard.png)
+
+## 🚀 Core Capabilities
 
 - SLO-based autoscaling using KEDA
 - Full observability stack (Prometheus, Grafana, Loki)

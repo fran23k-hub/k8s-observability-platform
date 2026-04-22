@@ -38,15 +38,6 @@ A production-style Kubernetes platform demonstrating observability, security, an
 - `automation/` → Internal tooling
 - `configs/` → Alerts & configs
 
-## 📊 Results & Validation
-
-The platform was tested under simulated load:
-
-- Availability maintained at ~99% under sustained traffic
-- Autoscaling triggered dynamically (1 → 5 pods) using KEDA
-- Malicious traffic successfully throttled at ingress level
-- Error rate remained below 1% during stress testing
-
 ## 🎯 Key Highlights
 
 - SLO-driven autoscaling based on real application health (not just CPU)
@@ -54,3 +45,12 @@ The platform was tested under simulated load:
 - Ingress-level traffic protection (rate limiting & IP throttling)
 - Secure secret management using Vault with dynamic credentials
 - Real-world validation through load testing and failure simulation
+
+## 📊 Results & Validation
+
+The platform was validated under controlled load testing scenarios::
+
+- Availability maintained at ~99% under sustained traffic
+- Autoscaling triggered dynamically (1 → 5 pods) using KEDA
+- Malicious traffic successfully throttled at ingress level
+- Error rate remained below 1% during stress testing
